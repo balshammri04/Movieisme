@@ -1,5 +1,5 @@
 //
-//  MovieismeApp.swift
+//  ContentView.swift
 //  Movieisme
 //
 //  Created by bayan alshammri on 20/01/2025.
@@ -11,7 +11,7 @@ import SwiftUI
 struct MovieismeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SignInView() // الشاشة الرئيسية للتطبيق
         }
     }
 }
