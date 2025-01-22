@@ -6,12 +6,15 @@ struct SignInView: View {
     @State private var isPasswordVisible: Bool = false
     @State private var showError: Bool = false
     @State private var isButtonActive: Bool = false
+    @State private var errorMessage: String = ""
     @FocusState private var focusedField: Field?
-
+    
+    @State private var isLoading: Bool = false
+    
     enum Field {
         case email, password
     }
-
+    
     var body: some View {
         ZStack {
             // Background image
@@ -19,13 +22,13 @@ struct SignInView: View {
                 .resizable()
                 .scaledToFill()
                 .edgesIgnoringSafeArea(.all)
-
+            
             // Gradient overlay
             LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.7), Color.black.opacity(0.3)]),
                            startPoint: .bottom,
                            endPoint: .top)
-                .edgesIgnoringSafeArea(.all)
-
+            .edgesIgnoringSafeArea(.all)
+            
             VStack(spacing: 20) {
                 Spacer()
                 
@@ -35,65 +38,33 @@ struct SignInView: View {
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-
+                    
                     Text("You'll find what you're looking for in the ocean of movies")
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-
-
+                
                 // Input fields
                 VStack(spacing: 15) {
                     // Email label and field
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Email")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            //.padding(.horizontal)
-
-                        TextField("", text: $email)
-                            .placeholder(when: email.isEmpty) {
-                                Text("Enter your email")
-                                 .foregroundColor(.white.opacity(0.70)) // Placeholder color
-                            }
+                   
+                        TextField("Enter your email", text: $email)
                             .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
                             .padding()
-                            .background(Color.white.opacity(0.50))
+                            .background(Color.white.opacity(0.80))
                             .cornerRadius(8)
-                            .foregroundColor(.white)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(focusedField == .email ? Color.yellow : Color.clear, lineWidth: 2)
-                            )
-                            .focused($focusedField, equals: .email)
-                    }
-
-                    // Password label and field
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Password")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-
+                            .foregroundColor(.black)
+                        
+                        // Password label and field
                         HStack {
                             if isPasswordVisible {
-                                TextField("", text: $password)
-                                    .placeholder(when: password.isEmpty) {
-                                        Text("Enter your password")
-                                            .foregroundColor(.white.opacity(0.70)) // Placeholder color
-                                    }
+                                TextField("Enter your password", text: $password)
                             } else {
-                                SecureField("", text: $password)
-                                    .placeholder(when: password.isEmpty) {
-                                        Text("Enter your password")
-                                            .foregroundColor(.white.opacity(0.70))// Placeholder color
-                                    }
+                                SecureField("Enter your password", text: $password)
                             }
-
+                            
                             Button(action: {
                                 isPasswordVisible.toggle()
                             }) {
@@ -102,84 +73,108 @@ struct SignInView: View {
                             }
                         }
                         .padding()
-                        .background(Color.white.opacity(0.50))
-                        .cornerRadius(8)
-                        .foregroundColor(.white)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(focusedField == .password ? Color.yellow : Color.clear, lineWidth: 2)
-                        )
-                        .focused($focusedField, equals: .password)
-                    }
-
-                    // Error message
-                    if showError {
-                        Text("Invalid password")
-                            .foregroundColor(.red)
-                            .font(.footnote)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            //.padding(.horizontal)
-                    }
-                }
-
-                // Sign-in button
-                Button(action: {
-                    if email.isEmpty || password.isEmpty || password != "password123" { // Replace with your validation logic
-                        showError = true
-                    } else {
-                        showError = false
-                        // Proceed with login
-                    }
-                }) {
-                    Text("Sign in")
-                        .fontWeight(.bold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(isButtonActive ? Color.yellow : Color.gray)
+                        .background(Color.white.opacity(0.80))
                         .cornerRadius(8)
                         .foregroundColor(.black)
+                        
+                        // Error message
+                        if showError {
+                            Text(errorMessage)
+                                .foregroundColor(.red)
+                                .font(.footnote)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    
+                    // Sign-in button
+                    Button(action: {
+                        signIn()
+                    }) {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                        } else {
+                            Text("Sign in")
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(isButtonActive ? Color.yellow : Color.gray)
+                                .cornerRadius(8)
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .disabled(!isButtonActive)
+                    
+                    Spacer()
+                        .frame(height: 50)
                 }
-                .disabled(!isButtonActive)
-
-                Spacer()
-                    .frame(height: 50)
-
-            }
-            .padding()
-            .onChange(of: email) {
-                checkButtonState()
-            }
-            .onChange(of: password) {
-                checkButtonState()
+                .padding()
+                .onChange(of: email) { _ in
+                    checkButtonState()
+                }
+                .onChange(of: password) { _ in
+                    checkButtonState()
+                }
+                
             }
         }
-    }
-
-    private func checkButtonState() {
-        isButtonActive = !email.isEmpty && !password.isEmpty
-    }
-}
-
-// Extension to handle placeholder text in TextField
-extension View {
-    func placeholder<Content: View>(
-        when shouldShow: Bool,
-        alignment: Alignment = .leading,
-        @ViewBuilder placeholder: () -> Content
-    ) -> some View {
-        ZStack(alignment: alignment) {
-            if shouldShow {
-                placeholder()
+        
+        private func checkButtonState() {
+            isButtonActive = !email.isEmpty && !password.isEmpty
+        }
+        
+        private func signIn() {
+            guard let url = URL(string: "https://api.airtable.com/v0/appsfcB6YESLj4NCN/users") else {
+                self.errorMessage = "Invalid API URL"
+                self.showError = true
+                return
             }
-            self
+            
+            isLoading = true
+            showError = false
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.addValue("pat174iMzI1IjVaWW.ee3816d9d6dad6782fb6e502392173de3ed73a05546fe5a1068dfaab9056f997", forHTTPHeaderField: "Authorization") // Replace with your Airtable API key
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                DispatchQueue.main.async {
+                    isLoading = false
+                    
+                    if let error = error {
+                        self.errorMessage = "Error: \(error.localizedDescription)"
+                        self.showError = true
+                        return
+                    }
+                    
+                    guard let data = data else {
+                        self.errorMessage = "No data received"
+                        self.showError = true
+                        return
+                    }
+                    
+                    do {
+                        let users = try JSONDecoder().decode([User].self, from: data)
+                        if let user = users.first(where: { $0.email == email && $0.password == password }) {
+                            // Successful login
+                            print("Welcome \(user.name)")
+                        } else {
+                            self.errorMessage = "Invalid credentials"
+                            self.showError = true
+                        }
+                    } catch {
+                        self.errorMessage = "Invalid password"
+                        self.showError = true
+                    }
+                }
+            }.resume()
         }
     }
-}
-
-struct SignInView_Previews: PreviewProvider {
-    static var previews: some View {
-        SignInView()
-            .previewDevice("iPhone 16 Pro")
+    
+    struct SignInView_Previews: PreviewProvider {
+        static var previews: some View {
+            SignInView()
+                .previewDevice("iPhone 16 Pro")
+        }
     }
-}
 

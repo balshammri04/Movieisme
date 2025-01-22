@@ -98,3 +98,4 @@ struct MoviesContainerView_Previews: PreviewProvider {
         MoviesContainerView()
     }
 }
+
