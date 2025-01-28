@@ -16,6 +16,11 @@
 			path = Movieisme;
 			sourceTree = "<group>";
 		};
+		B1C832EA2D491E740072F3BA /* Preview Content */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +37,7 @@
 		B193ADED2D3E6E2300B31CD0 = {
 			isa = PBXGroup;
 			children = (
+				B1C832EA2D491E740072F3BA /* Preview Content */,
 				B193ADF82D3E6E2300B31CD0 /* Movieisme */,
 				B193ADF72D3E6E2300B31CD0 /* Products */,
 			);
@@ -62,6 +68,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				B193ADF82D3E6E2300B31CD0 /* Movieisme */,
+				B1C832EA2D491E740072F3BA /* Preview Content */,
 			);
 			name = Movieisme;
 			packageProductDependencies = (
