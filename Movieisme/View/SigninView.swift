@@ -9,8 +9,8 @@ struct SigninView: View {
     @State private var isButtonActive: Bool = false
     @FocusState private var focusedField: Field?
     @State private var navigateToMovieCenter: Bool = false
-    @State private var loggedInUser: User? // تخزين المستخدم المسجل دخوله
-
+    @State private var loggedInUser: User? = nil  // ✅ تخزين بيانات المستخدم المسجل
+    private let defaultUser = User.defaultUser
 
     // User data
     let users: [User] = [
@@ -18,11 +18,14 @@ struct SigninView: View {
         User(id: "recPMaNVKM6yYZFIl", email: "kaia@oconnor.com", password: "kaia@oconnor.com", profileImage: "https://source.unsplash.com/200x200/?person", name: "Default User"),
         User(id: "recPRxIRAyyvQxfkP", email: "sam@oconnor.com", password: "Sam@oconnor.com", profileImage: "https://source.unsplash.com/200x200/?person", name: "Default User"),
         User(id: "recaLvl1OOPjSagCx", email: "alia@romero.com", password: "alia@romero.com", profileImage: "https://source.unsplash.com/200x200/?person", name: "Default User")
-        ]
+    ]
     
-    enum Field {
+
+    enum Field: Hashable {
         case email, password
     }
+
+
 
     var body: some View {
         NavigationView {
@@ -44,8 +47,6 @@ struct SigninView: View {
                 VStack(spacing: 20) {
                     Spacer()
 
-                    // Title and subtitle
-                    NavigationLink(destination: MoviesCenterView(userImage: "https://source.unsplash.com/200x200/?person")) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Sign in")
                             .font(.largeTitle)
@@ -84,21 +85,26 @@ struct SigninView: View {
                     }
                     .disabled(!isButtonActive)
 
+                                   // ✅ التنقل إلى MoviesCenterView عند نجاح تسجيل الدخول
+                    NavigationLink(destination: MoviesCenterView(user: loggedInUser ?? User.defaultUser), isActive: $navigateToMovieCenter) {
+                        EmptyView()
+                    }
+
+                    }
+
+
+                                }
                     Spacer()
                         .frame(height: 50)
                 }
                 .padding()
                 .onChange(of: email) { _ in checkButtonState() }
                 .onChange(of: password) { _ in checkButtonState() }
-
-                
-                }
             }
         }
-    }
 
     // MARK: - Helper Views
-    @ViewBuilder
+@ViewBuilder
     private func emailInputField() -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text("Email")
@@ -163,12 +169,14 @@ struct SigninView: View {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(focusedField == .password ? Color.yellow : Color.clear, lineWidth: 2)
             )
+            .focused($focusedField, equals: .email)
             .focused($focusedField, equals: .password)
         }
     }
 
+
     // MARK: - Helper Methods
-    private func checkButtonState() {
+private func checkButtonState() {
         isButtonActive = !email.isEmpty && !password.isEmpty
     }
 
@@ -181,8 +189,7 @@ struct SigninView: View {
                 showError = true
             }
         }
-    }
-
+    
 
 // Extension for Placeholder
 extension View {
@@ -199,11 +206,11 @@ extension View {
         }
     }
 }
+
 struct SignInView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            SigninView(userImage: "")
+            SigninView(userImage: "profile_icon")
         }
     }
 }
-
